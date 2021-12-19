@@ -16,3 +16,8 @@ class ListConversationsErrorState extends ListConversationsState {
 }
 
 class ListConversationsNewSeenState extends ListConversationsState {}
+
+class ListConversationsNewMessageState extends ListConversationsState {
+  final int? oldPos;
+  ListConversationsNewMessageState(this.oldPos);
+}

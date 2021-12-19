@@ -27,7 +27,24 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _bloc = GetIt.I();
+    _bloc = GetIt.I()
+      ..listenerStream.listen((event) {
+        if (event is ListConversationsNewMessageState) {
+          if (event.oldPos != null) {
+            _sliverAnimatedListKey.currentState?.removeItem(
+                event.oldPos!,
+                (context, animation) => FadeTransition(
+                    opacity: animation.drive(Tween(begin: 1.0, end: 0.0))),
+                duration: const Duration(milliseconds: 200));
+          }
+          _sliverAnimatedListKey.currentState
+              ?.insertItem(0, duration: const Duration(milliseconds: 200));
+        } else if (event is ListConversationsCompleteState) {
+          for (int i = 0; i < _bloc.conversations.length; i++) {
+            _sliverAnimatedListKey.currentState?.insertItem(i);
+          }
+        }
+      });
   }
 
   @override
@@ -43,6 +60,7 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tweenIn = Tween(begin: const Offset(1,0), end: const Offset(0,0));
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
@@ -99,49 +117,55 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
                 return const SliverToBoxAdapter(
                     child: CustomCircularProgress());
               }
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
+              return SliverAnimatedList(
+                  key: _sliverAnimatedListKey,
+                  initialItemCount: _bloc.conversations.length,
+                  itemBuilder: (context, index, animation) {
                     if (index == _bloc.conversations.length) {
-                      return null;
+                      return const SizedBox.shrink();
                       // return const Text(
                       //   "Load more ...",
                       //   textAlign: TextAlign.center,
                       // );
                     } else if (index > _bloc.conversations.length) {
-                      return null;
+                      return const SizedBox.shrink();
                     }
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 16),
-                      child: Row(
-                        children: [
-                          _getCircularAvatar(_bloc.conversations[index]),
-                          const SizedBox(
-                            width: 16,
-                          ),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _getConversationName(_bloc.conversations[index]),
-                                const SizedBox(
-                                  height: 4,
-                                ),
-                                _getConversationLastMessage(
-                                    _bloc.conversations[index]),
-                              ],
+                    return SlideTransition(
+                      position: animation.drive(tweenIn),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 16),
+                        child: Row(
+                          children: [
+                            _getCircularAvatar(_bloc.conversations[index]),
+                            const SizedBox(
+                              width: 16,
                             ),
-                          ),
-                          const SizedBox(width: 4,),
-                          _getLastMessageState(_bloc.conversations[index])
-                        ],
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _getConversationName(
+                                      _bloc.conversations[index]),
+                                  const SizedBox(
+                                    height: 4,
+                                  ),
+                                  _getConversationLastMessage(
+                                      _bloc.conversations[index]),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 4,
+                            ),
+                            _getLastMessageState(_bloc.conversations[index])
+                          ],
+                        ),
                       ),
                     );
-                  },
-                ),
-              );
+                  });
             })
       ],
     );
@@ -190,7 +214,10 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
     }
     return Text(
       username,
-      style: TextStyle(overflow: TextOverflow.ellipsis, fontSize: 14, fontWeight: isSeen ? FontWeight.normal : FontWeight.bold),
+      style: TextStyle(
+          overflow: TextOverflow.ellipsis,
+          fontSize: 14,
+          fontWeight: isSeen ? FontWeight.normal : FontWeight.bold),
     );
   }
 
@@ -218,13 +245,19 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Expanded(
-          child: Text(res, style: style,
+          child: Text(
+            res,
+            style: style,
             textAlign: TextAlign.start,
           ),
         ),
-        const SizedBox(width: 4,),
+        const SizedBox(
+          width: 4,
+        ),
         Text(
-          isSameDay ? _timeFormat.format(conversation.lastMessage.sendAt) : _dateFormat.format(conversation.lastMessage.sendAt),
+          isSameDay
+              ? _timeFormat.format(conversation.lastMessage.sendAt)
+              : _dateFormat.format(conversation.lastMessage.sendAt),
           style: style,
           textAlign: TextAlign.center,
         )
@@ -234,7 +267,7 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
 
   Widget _getLastMessageState(Conversation conversation) {
     User user = GetIt.I();
-    if(user.id != conversation.lastMessage.sendBy) {
+    if (user.id != conversation.lastMessage.sendBy) {
       return const SizedBox.shrink();
     } else {
       return const SizedBox.shrink();

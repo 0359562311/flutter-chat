@@ -21,4 +21,22 @@ class ConversationRepository {
       return Error(Failure(e.response?.data['detail']??"Something happened"));
     }
   }
+
+  Future<Result<Failure, Conversation>> getConversationById(int id) async {
+    try {
+      final res = await _remoteSources.getConversationByID(id);
+      return Success(res);
+    } on DioError catch (e) {
+      return Error(Failure(e.response?.data['detail']??"Something happened"));
+    }
+  }
+
+  Future<Result<Failure, Conversation>> getConversationToUser(int otherId) async {
+    try {
+      final res = await _remoteSources.getConversationToUser(otherId);
+      return Success(res);
+    } on DioError catch (e) {
+      return Error(Failure(e.response?.data['detail']??"Something happened"));
+    }
+  }
 }

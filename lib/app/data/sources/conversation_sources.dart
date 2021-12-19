@@ -11,6 +11,18 @@ class ConversationRemoteSources {
         .map((e) => Conversation.fromMap(e))
         .toList();
   }
+
+  Future<Conversation> getConversationByID(int id) async {
+    final res = await GetIt.I<Dio>().get(APIPath.conversation + "/$id");
+    return Conversation.fromMap(res.data);
+  }
+
+  Future<Conversation> getConversationToUser(int otherId) async {
+    final res = await GetIt.I<Dio>().get(APIPath.conversation,
+        queryParameters: {'other': otherId});
+    
+    return Conversation.fromMap(res.data);
+  }
 }
 
 class ConversationLocalSources {
