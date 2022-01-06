@@ -57,7 +57,7 @@ class ListConversationsBloc extends Bloc {
     _socketController = PublishSubject();
     _socketController!.addStream(_socketChannel!.stream);
     _socketController!.stream.listen(_socketHandler,
-        onDone: onClosed, onError: onError, cancelOnError: false);
+        onDone: _onClosed, onError: _onError, cancelOnError: false);
   }
 
   Future<void> add(ListConversationsEvent event) async {
@@ -123,13 +123,13 @@ class ListConversationsBloc extends Bloc {
     }
   }
 
-  void onClosed() {
+  void _onClosed() {
     print("websocket onDone prepare to reconnect");
     print("websocket connecting");
     _doConnect();
   }
 
-  void onError(err, StackTrace stackTrace) {
+  void _onError(err, StackTrace stackTrace) {
     print("websocket error:" + err.toString());
     if (stackTrace != null) {
       print(stackTrace);
