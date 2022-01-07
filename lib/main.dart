@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rxdart/subjects.dart';
 
 import 'app/presentation/login/ui/login.dart';
@@ -18,9 +18,7 @@ import 'core/dependencies_injection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Directory? appDocDir = await getExternalStorageDirectory();
-  String appDocPath = (appDocDir?.path ?? "")+"tankiem_chat";
-  Hive..init(appDocPath)
+  Hive..initFlutter()
   ..registerAdapter(SessionAdapter())
   ..registerAdapter(UserAdapter());
   await initDependenciesInjection();
@@ -53,6 +51,7 @@ class MyApp extends StatelessWidget {
         routes: {
           AppRoute.init: (context) => const Bridge(),
           AppRoute.login: (context) => const Login(),
+          AppRoute.home: (_) => const Home()
         },
         onGenerateRoute: (settings) {
           // if (settings.name == AppRoute.registerableClassDetails) {

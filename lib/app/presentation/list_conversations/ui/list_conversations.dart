@@ -60,7 +60,7 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tweenIn = Tween(begin: const Offset(1,0), end: const Offset(0,0));
+    final tweenIn = Tween(begin: const Offset(0,1), end: const Offset(0,0));
     return CustomScrollView(
       controller: _scrollController,
       slivers: [

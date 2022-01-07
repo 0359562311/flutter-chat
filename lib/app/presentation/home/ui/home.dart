@@ -53,10 +53,11 @@ class _HomeState extends State<Home> {
                 width: 20,
                 height: 20,
               ),
-              title: const Text(
-                "Chats",
+              centerTitle: false,
+              title: Text(
+                _currentIndex == 0 ? "Chats":"People",
                 style:
-                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                    const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
               backgroundColor: Colors.white,
               elevation: 0.5,
