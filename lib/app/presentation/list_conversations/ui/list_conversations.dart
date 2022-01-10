@@ -16,12 +16,14 @@ class ListConversationsScreen extends StatefulWidget {
   ListConversationsScreenState createState() => ListConversationsScreenState();
 }
 
+final DateFormat _timeFormat = DateFormat("HH:mm");
+final DateFormat _dateFormat = DateFormat("MMM dd yyyy");
+
 class ListConversationsScreenState extends State<ListConversationsScreen> {
   late final ListConversationsBloc _bloc;
   late final ScrollController _scrollController;
   final _sliverAnimatedListKey = GlobalKey<SliverAnimatedListState>();
-  final DateFormat _timeFormat = DateFormat("HH:mm");
-  final DateFormat _dateFormat = DateFormat("MMM dd yyyy");
+
 
   @override
   void initState() {
@@ -122,11 +124,13 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
                   initialItemCount: _bloc.conversations.length,
                   itemBuilder: (context, index, animation) {
                     if (index == _bloc.conversations.length) {
-                      return const SizedBox.shrink();
-                      // return const Text(
-                      //   "Load more ...",
-                      //   textAlign: TextAlign.center,
-                      // );
+                      if(_scrollController.offset < 25) {
+                        return const SizedBox.shrink();
+                      }
+                      return const Text(
+                        "Load more ...",
+                        textAlign: TextAlign.center,
+                      );
                     } else if (index > _bloc.conversations.length) {
                       return const SizedBox.shrink();
                     }

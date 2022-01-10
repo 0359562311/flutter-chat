@@ -1,3 +1,4 @@
+import 'package:chat/app/presentation/SocketHandler.dart';
 import 'package:chat/app/presentation/home/bloc/home_bloc.dart';
 import 'package:chat/app/presentation/home/bloc/home_state.dart';
 import 'package:chat/app/presentation/list_conversations/ui/list_conversations.dart';
@@ -24,11 +25,14 @@ class _HomeState extends State<Home> {
     super.initState();
     _body = [ListConversationsScreen(key: _listConversationsKey,), Container()];
     _bloc = GetIt.I();
+    GetIt.I.registerLazySingleton(() => SocketHandler());
   }
 
   @override
   void dispose() {
     _bloc.dispose();
+    GetIt.I<SocketHandler>().dispose();
+    GetIt.I.unregister<SocketHandler>();
     super.dispose();
   }
 
