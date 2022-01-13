@@ -2,6 +2,7 @@ import 'package:chat/app/presentation/SocketHandler.dart';
 import 'package:chat/app/presentation/home/bloc/home_bloc.dart';
 import 'package:chat/app/presentation/home/bloc/home_state.dart';
 import 'package:chat/app/presentation/list_conversations/ui/list_conversations.dart';
+import 'package:chat/core/const/app_colors.dart';
 import 'package:chat/core/custom_widget/custom_circular_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -42,7 +43,7 @@ class _HomeState extends State<Home> {
         stream: _bloc.stateStream,
         builder: (context, snapshot) {
           if (!snapshot.hasData || snapshot.data is HomeLoadingState) {
-            return const CustomCircularProgress();
+            return Center(child: Image.asset("assets/images/messenger.png"),);
           } else if (snapshot.data is HomeErrorState) {
             return Text((snapshot.data as HomeErrorState).message);
           }
@@ -92,7 +93,7 @@ class _HomeState extends State<Home> {
             ),
             bottomNavigationBar: BottomNavigationBar(
               currentIndex: _currentIndex,
-              selectedIconTheme: IconThemeData(color: Colors.blue.shade700),
+              selectedIconTheme: const IconThemeData(color: AppColors.lightBlue),
               onTap: (value) {
                 if (value != _currentIndex) {
                   setState(() {

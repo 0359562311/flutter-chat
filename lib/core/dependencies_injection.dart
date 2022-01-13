@@ -2,10 +2,13 @@ import 'package:chat/app/data/models/session.dart';
 import 'package:chat/app/data/models/user.dart';
 import 'package:chat/app/data/repositories/authentication_repository.dart';
 import 'package:chat/app/data/repositories/conversation_repository.dart';
+import 'package:chat/app/data/repositories/message_repository.dart';
 import 'package:chat/app/data/repositories/user_repository.dart';
 import 'package:chat/app/data/sources/authentication_sources.dart';
 import 'package:chat/app/data/sources/conversation_sources.dart';
+import 'package:chat/app/data/sources/message_sources.dart';
 import 'package:chat/app/data/sources/user_source.dart';
+import 'package:chat/app/presentation/conversation/bloc/conversation_bloc.dart';
 import 'package:chat/app/presentation/home/bloc/home_bloc.dart';
 import 'package:chat/app/presentation/list_conversations/bloc/list_conversations_bloc.dart';
 import 'package:chat/app/presentation/login/bloc/login_bloc.dart';
@@ -15,6 +18,7 @@ import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:rxdart/subjects.dart';
 
+import 'const/api_path.dart';
 import 'interceptor.dart';
 import 'package:dio/dio.dart';
 
@@ -41,7 +45,7 @@ Future<void> initDependenciesInjection() async {
   if(user != null) getIt.registerSingleton<User>(user);
 
   var options = BaseOptions(
-      baseUrl: 'http://192.168.0.101:8000',
+      baseUrl: 'http://${APIPath.serverIP}:8000',
       connectTimeout: 60000,
       receiveTimeout: 60000,
       responseType: ResponseType.json);
@@ -63,6 +67,8 @@ Future<void> initDependenciesInjection() async {
       () => AuthenticationRepository(getIt(), getIt()));
   getIt.registerLazySingleton<ConversationRepository>(
       () => ConversationRepository(getIt(), getIt()));
+  getIt.registerLazySingleton<MessageRepository>(
+          () => MessageRepository(getIt()));
   getIt.registerLazySingleton<UserRepository>(
       () => UserRepository(getIt(), getIt()));
 
@@ -73,9 +79,11 @@ Future<void> initDependenciesInjection() async {
   getIt.registerLazySingleton(() => ConversationRemoteSources());
   getIt.registerLazySingleton(() => UserRemoteSource());
   getIt.registerLazySingleton(() => UserLocalSource());
+  getIt.registerLazySingleton(() => MessageRemoteSource());
 
   /// bloc
   getIt.registerFactory(() => LoginBloc(getIt()));
   getIt.registerFactory(() => ListConversationsBloc(getIt()));
   getIt.registerFactory(() => HomeBloc(getIt()));
+  getIt.registerFactory(() => ConversationBloc(getIt(), getIt()));
 }

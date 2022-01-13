@@ -12,13 +12,8 @@ import 'package:get_it/get_it.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:chat/core/extensions/string_to_datetime.dart';
 
-class ListConversationsBloc extends Bloc {
+class ListConversationsBloc extends Bloc<ListConversationsEvent, ListConversationsState> {
   final ConversationRepository _conversationRepository;
-
-  late final BehaviorSubject<ListConversationsState> _stateController;
-  ValueStream<ListConversationsState> get stateStream =>
-      _stateController.stream;
-  Sink<ListConversationsState> get _stateSink => _stateController.sink;
 
   late final PublishSubject<ListConversationsState> _listenerController;
   Stream<ListConversationsState> get listenerStream => _listenerController.stream;
@@ -30,31 +25,29 @@ class ListConversationsBloc extends Bloc {
 
   ListConversationsBloc(
     this._conversationRepository,
-  ) {
-    _stateController =
-        BehaviorSubject.seeded(const ListConversationsLoadingState());
+  ): super(const ListConversationsLoadingState()) {
     _listenerController = PublishSubject();
     _init();
   }
 
   void _init() async {
-    add(ListConversationsReloadEvent());
+    addEvent(ListConversationsReloadEvent());
     await _socketController?.drain();
     _socketController = PublishSubject();
     _socketController!.addStream(GetIt.I<SocketHandler>().socketController);
     _socketController!.stream.listen(_socketHandler);
   }
 
-  Future<void> add(ListConversationsEvent event) async {
+  @override
+  Future<void> addEvent(ListConversationsEvent event) async {
     if (event is ListConversationsReloadEvent) {
       final res = await _conversationRepository.getList(0);
       if (res.isSuccess()) {
         _conversations = (res.getSuccess()!);
-        _stateSink.add(ListConversationsCompleteState());
+        emit(ListConversationsCompleteState());
         _listenerController.sink.add(ListConversationsCompleteState());
       } else {
-        _stateSink
-            .add(ListConversationsErrorState(message: res.getError()!.reason));
+        emit(ListConversationsErrorState(message: res.getError()!.reason));
       }
     }
   }
@@ -79,7 +72,7 @@ class ListConversationsBloc extends Bloc {
             } else {
               c.lastSeen2 = seenAt;
             }
-            _stateSink.add(ListConversationsNewSeenState());
+            emit(ListConversationsNewSeenState());
             break;
           }
         }
@@ -94,7 +87,7 @@ class ListConversationsBloc extends Bloc {
               _conversations.insert(0, c);
               _listenerController.sink.add(ListConversationsNewMessageState(i));
             } else {
-              _stateSink.add(ListConversationsNewSeenState());
+              emit(ListConversationsNewSeenState());
             }
             return;
           }
@@ -108,19 +101,19 @@ class ListConversationsBloc extends Bloc {
         }
       }
     } else if(event is SocketConnectingState) {
-      _stateSink.add(const ListConversationsLoadingState());
+      emit(const ListConversationsLoadingState());
     } else if (event is SocketConnectedState) {
-      _stateSink.add(ListConversationsCompleteState());
-      add(ListConversationsReloadEvent());
+      emit(ListConversationsCompleteState());
+      addEvent(ListConversationsReloadEvent());
     } else if (event is SocketErrorState) {
-      _stateSink.add(ListConversationsErrorState(message: "No internet connection."));
+      emit(ListConversationsErrorState(message: "No internet connection."));
     }
 
   }
 
   @override
   void dispose() async {
-    _stateController.close();
+    super.dispose();
     _listenerController.close();
     await _socketController?.drain();
     _socketController?.close();

@@ -2,35 +2,28 @@ import 'package:chat/app/data/repositories/authentication_repository.dart';
 import 'package:chat/app/presentation/login/bloc/login_event.dart';
 import 'package:chat/app/presentation/login/bloc/login_state.dart';
 import 'package:chat/core/bloc_base/bloc_base.dart';
-import 'package:rxdart/subjects.dart';
 
-class LoginBloc extends Bloc {
+class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
-  late final BehaviorSubject<LoginState> _stateController;
   final AuthenticationRepository _authenticationRepository;
 
-  LoginBloc(this._authenticationRepository) {
-    _stateController = BehaviorSubject.seeded(const LoginInitState());
-  }
+  LoginBloc(this._authenticationRepository): super(const LoginInitState());
 
-  Stream<LoginState> get stateStream => _stateController.stream;
-
-  Sink<LoginState> get _stateSink => _stateController.sink;
-
-  void add(LoginEvent event) async {
+  @override
+  void addEvent(LoginEvent event) async {
     if(event is LoginWithUsernameEvent) {
-      _stateSink.add(const LoginLoadingState());
+      emit(const LoginLoadingState());
       final res = await _authenticationRepository.logIn(event.username, event.password);
       if(res.isSuccess()) {
-        _stateSink.add(const LoginSuccessfulState());
+        emit(const LoginSuccessfulState());
       } else {
-        _stateSink.add(LoginFailState(message: res.getError()!.reason));
+        emit(LoginFailState(message: res.getError()!.reason));
       }
     }
   }
 
   @override
   void dispose() {
-    _stateController.close();
+    super.dispose();
   }
 }

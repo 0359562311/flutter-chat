@@ -1,14 +1,13 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:chat/app/data/models/conversation.dart';
 import 'package:chat/app/data/models/session.dart';
 import 'package:chat/app/data/models/user.dart';
+import 'package:chat/app/presentation/conversation/ui/conversation_screen.dart';
 import 'package:chat/app/presentation/home/ui/home.dart';
-import 'package:chat/core/custom_widget/custom_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rxdart/subjects.dart';
 
@@ -43,8 +42,6 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
           fontFamily: "Roboto",
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
         ),
         debugShowCheckedModeBanner: false,
         navigatorKey: GetIt.instance<GlobalKey<NavigatorState>>(),
@@ -54,12 +51,12 @@ class MyApp extends StatelessWidget {
           AppRoute.home: (_) => const Home()
         },
         onGenerateRoute: (settings) {
-          // if (settings.name == AppRoute.registerableClassDetails) {
-          //   return MaterialPageRoute(
-          //       builder: (context) => RegisterableClassDetailsScreen(
-          //             id: settings.arguments as int,
-          //           ));
-          // }
+          if (settings.name == AppRoute.conversation) {
+            return MaterialPageRoute(
+                builder: (context) => ConversationScreen(
+                      conversation: settings.arguments as Conversation,
+                    ));
+          }
         },
       ),
     );

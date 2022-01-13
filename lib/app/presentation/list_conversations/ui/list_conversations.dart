@@ -3,6 +3,7 @@ import 'package:chat/app/data/models/user.dart';
 import 'package:chat/app/presentation/list_conversations/bloc/list_conversations_bloc.dart';
 import 'package:chat/app/presentation/list_conversations/bloc/list_conversations_event.dart';
 import 'package:chat/app/presentation/list_conversations/bloc/list_conversations_state.dart';
+import 'package:chat/core/const/app_routes.dart';
 import 'package:chat/core/custom_widget/custom_circular_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -57,7 +58,7 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
   }
 
   void reload() {
-    _bloc.add(ListConversationsReloadEvent());
+    _bloc.addEvent(ListConversationsReloadEvent());
   }
 
   @override
@@ -116,8 +117,8 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
             stream: _bloc.stateStream,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return const SliverToBoxAdapter(
-                    child: CustomCircularProgress());
+                return SliverToBoxAdapter(
+                    child: Center(child: Image.asset("assets/images/messenger.png"),));
               }
               return SliverAnimatedList(
                   key: _sliverAnimatedListKey,
@@ -134,38 +135,43 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
                     } else if (index > _bloc.conversations.length) {
                       return const SizedBox.shrink();
                     }
-                    return SlideTransition(
-                      position: animation.drive(tweenIn),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 16),
-                        child: Row(
-                          children: [
-                            _getCircularAvatar(_bloc.conversations[index]),
-                            const SizedBox(
-                              width: 16,
-                            ),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _getConversationName(
-                                      _bloc.conversations[index]),
-                                  const SizedBox(
-                                    height: 4,
-                                  ),
-                                  _getConversationLastMessage(
-                                      _bloc.conversations[index]),
-                                ],
+                    return InkWell(
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoute.conversation,arguments: _bloc.conversations[index]);
+                      },
+                      child: SlideTransition(
+                        position: animation.drive(tweenIn),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 16),
+                          child: Row(
+                            children: [
+                              _getCircularAvatar(_bloc.conversations[index]),
+                              const SizedBox(
+                                width: 16,
                               ),
-                            ),
-                            const SizedBox(
-                              width: 4,
-                            ),
-                            _getLastMessageState(_bloc.conversations[index])
-                          ],
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _getConversationName(
+                                        _bloc.conversations[index]),
+                                    const SizedBox(
+                                      height: 4,
+                                    ),
+                                    _getConversationLastMessage(
+                                        _bloc.conversations[index]),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 4,
+                              ),
+                              _getLastMessageState(_bloc.conversations[index])
+                            ],
+                          ),
                         ),
                       ),
                     );

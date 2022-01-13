@@ -99,7 +99,7 @@ class _LoginState extends State<Login> {
                         InkWell(
                           onTap: () {
                             if (_formKey.currentState?.validate() ?? false) {
-                              _bloc.add(LoginWithUsernameEvent(
+                              _bloc.addEvent(LoginWithUsernameEvent(
                                   username: _usernameController.text,
                                   password: _passwordController.text));
                             }
