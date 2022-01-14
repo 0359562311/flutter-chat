@@ -24,7 +24,6 @@ class _ChatLineState extends State<ChatLine> with TickerProviderStateMixin {
 
   late AnimationController _animationController;
   late Animation<Offset> _animationOffset;
-  late Animation<double> _animationHeight;
   late bool _isExpanded;
 
   @override
@@ -35,7 +34,6 @@ class _ChatLineState extends State<ChatLine> with TickerProviderStateMixin {
         reverseDuration: const Duration(milliseconds: 200)
     );
     _animationOffset = Tween<Offset>(begin: const Offset(0, 1), end: const Offset(0, 0)).animate(_animationController);
-    _animationHeight = Tween<double>().animate(_animationController);
   }
 
   @override
@@ -57,15 +55,15 @@ class _ChatLineState extends State<ChatLine> with TickerProviderStateMixin {
           _isExpanded = !_isExpanded;
         });
       },
-      child: IntrinsicWidth(
-        child: Column(
-          crossAxisAlignment: widget.isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            SlideTransition(
-              child: _isExpanded ? Text("Send at ${widget.message.sendAt.toMyDateTime()}") : const SizedBox.shrink(),
-              position: _animationOffset,
-            ),
-            Container(
+      child: Column(
+        crossAxisAlignment: widget.isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          SlideTransition(
+            child: _isExpanded ? Text("Sent at ${widget.message.sendAt.toMyDateTime()}") : const SizedBox.shrink(),
+            position: _animationOffset,
+          ),
+          IntrinsicWidth(
+            child: Container(
               padding: const EdgeInsets.all(8),
               margin: const EdgeInsets.symmetric(vertical: 2),
               decoration: BoxDecoration(
@@ -75,18 +73,20 @@ class _ChatLineState extends State<ChatLine> with TickerProviderStateMixin {
               child:
               Text(widget.message.text ?? "This message has been removed",
                 maxLines: 1000,
-                style: TextStyle(color: widget.isSender ? Colors.white : Colors.black),
+                style: TextStyle(color: widget.isSender ? Colors.white : Colors.black,
+                  fontStyle: widget.message.text == null ? FontStyle.italic : FontStyle.normal
+                ),
               ),
               constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width - 64 - 100
               ),
             ),
-            SlideTransition(
-              child: _getMessageStatus(),
-              position: _animationOffset,
-            ),
-          ],
-        ),
+          ),
+          SlideTransition(
+            child: _getMessageStatus(),
+            position: _animationOffset,
+          ),
+        ],
       ),
     );
   }

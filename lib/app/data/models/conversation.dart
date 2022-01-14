@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:chat/app/data/models/message.dart';
+import 'package:chat/app/data/models/user.dart';
 import 'package:chat/core/extensions/string_to_datetime.dart';
+import 'package:get_it/get_it.dart';
 
 class Conversation {
   int id;
@@ -57,6 +59,30 @@ class Conversation {
       lastSeen2: (map['last_seen2'] as String).toDateTime(),
       lastMessage: Message.fromMap(map['last_message']),
     );
+  }
+
+  UserInConversation getOther() {
+    final user = GetIt.I<User>();
+    if(user1.id == user.id) {
+      return user2;
+    }
+    return user1;
+  }
+
+  DateTime getMyLastSeen() {
+    final user = GetIt.I<User>();
+    if(user1.id == user.id) {
+      return lastSeen1;
+    }
+    return lastSeen2;
+  }
+
+  DateTime getOtherLastSeen() {
+    final user = GetIt.I<User>();
+    if(user1.id != user.id) {
+      return lastSeen1;
+    }
+    return lastSeen2;
   }
 
   factory Conversation.fromJson(String source) => Conversation.fromMap(json.decode(source));

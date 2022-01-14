@@ -26,11 +26,11 @@ class SocketHandler {
   }
 
   Future initWebSocketConnection({String? to}) async {
-    print("conecting...");
+    print("connecting...");
     _isConnecting = true;
     _socketController.sink.add(SocketConnectingState());
     _channel = await connectWs(to: to);
-    print("socket connection initializied");
+    print("socket connection initialized");
     _isConnecting = false;
     _isError = false;
     _socketController.sink.add(SocketConnectedState());

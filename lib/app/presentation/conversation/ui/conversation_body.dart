@@ -3,10 +3,12 @@ import 'package:chat/app/data/models/message.dart';
 import 'package:chat/app/data/models/user.dart';
 import 'package:chat/app/presentation/conversation/bloc/conversation_bloc.dart';
 import 'package:chat/app/presentation/conversation/bloc/conversation_state.dart';
+import 'package:chat/app/presentation/conversation/ui/seen_status.dart';
 import 'package:chat/core/bloc_base/bloc_consumer.dart';
 import 'package:chat/core/bloc_base/bloc_provider.dart';
 import 'package:chat/core/const/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 
 import 'chat_line.dart';
@@ -44,16 +46,31 @@ class _ConversationBodyState extends State<ConversationBody> {
 
     return BlocConsumer<ConversationBloc, ConversationState>(
       bloc: _bloc!,
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state is ConversationErrorState) {
+          Fluttertoast.showToast(
+              msg: state.reason!,
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.CENTER,
+              fontSize: 16.0
+          );
+        }
+      },
+      listenWhen: (oldState, newState) {
+        return newState is ConversationErrorState && newState.reason != null;
+      },
+      buildWhen: (oldState, newState) {
+        return newState is ConversationNewMessageState || newState is ConversationLoadMoreMessageCompleteState;
+      },
       builder: (context, state) {
+        print("$state in body");
         return Column(
           children: [
             Expanded(
               child: Theme(
                 data: ThemeData(
                     splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent
-                ),
+                    highlightColor: Colors.transparent),
                 child: ListView.builder(
                   reverse: true,
                   controller: _scrollController,
@@ -65,10 +82,17 @@ class _ConversationBodyState extends State<ConversationBody> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          ChatLine(message: message, conversation: widget.conversation, isSender: true),
+                          ChatLine(
+                              message: message,
+                              conversation: widget.conversation,
+                              isSender: true),
                           const SizedBox(
-                            width: 30,
+                            width: 8,
                           ),
+                          _getSeenStatus(widget.conversation, message, index == 0 ? null : _bloc.messages[index-1],context),
+                          const SizedBox(
+                            width: 8,
+                          )
                         ],
                       );
                     }
@@ -77,25 +101,82 @@ class _ConversationBodyState extends State<ConversationBody> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: (index == 0 || (index > 0 && message.sendBy != _bloc.messages[index-1].sendBy)) ? CircleAvatar(
-                            radius: 15,
-                            backgroundImage: (other.avatar == null
-                                ? const AssetImage("assets/images/person.png")
-                                : NetworkImage(other.avatar!)) as ImageProvider,
-                          ): const SizedBox(width: 31,),
+                          child: (index == 0 ||
+                                  (index > 0 &&
+                                      message.sendBy !=
+                                          _bloc.messages[index - 1].sendBy))
+                              ? CircleAvatar(
+                                  radius: 15,
+                                  backgroundImage: (other.avatar == null
+                                          ? const AssetImage(
+                                              "assets/images/person.png")
+                                          : NetworkImage(other.avatar!))
+                                      as ImageProvider,
+                                )
+                              : const SizedBox(
+                                  width: 31,
+                                ),
                         ),
-                        ChatLine(message: message, conversation: widget.conversation, isSender: false),
-                        const SizedBox(width: 100,)
+                        ChatLine(
+                            message: message,
+                            conversation: widget.conversation,
+                            isSender: false),
+                        const Spacer(),
+                        _getSeenStatus(widget.conversation, message, index == 0 ? null : _bloc.messages[index-1],context),
+                        const SizedBox(
+                          width: 8,
+                        )
                       ],
                     );
                   },
                 ),
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom,)
+            SizedBox(
+              height: MediaQuery.of(context).padding.bottom,
+            )
           ],
         );
       },
     );
+  }
+
+  Widget _getSeenStatus(
+      Conversation conversation, Message message, Message? nextMessage,BuildContext context) {
+    if(nextMessage != null) {
+      if(nextMessage.sendAt.isAfter(conversation.getOtherLastSeen())) {
+        if(message.sendAt.isBefore(conversation.getOtherLastSeen())) {
+          return SeenStatus(
+              avatar: conversation.getOther().avatar,
+              initOffset: _getTextHeight(
+                  message.text, MediaQuery.of(context).size.width - 64 - 100));
+        }
+      }
+      return const SizedBox.shrink();
+    }
+    else {
+      if(message.sendAt.isAfter(conversation.getOtherLastSeen())) {
+        return const SizedBox.shrink();
+      }
+      return SeenStatus(
+          avatar: conversation.getOther().avatar,
+          initOffset: _getTextHeight(
+              message.text, MediaQuery.of(context).size.width - 64 - 100));
+    }
+  }
+
+  double _getTextHeight(String? s, double maxWidth) {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(
+          text: s ?? "This message has been removed.",
+          style: TextStyle(
+              fontStyle: s == null ? FontStyle.italic : FontStyle.normal)),
+      textDirection: TextDirection.ltr,
+      maxLines: 1000,
+    )..layout(minWidth: 0, maxWidth: maxWidth);
+
+    final countLines = (textPainter.size.width / maxWidth).ceil();
+    final height = countLines * textPainter.size.height;
+    return height + 20;
   }
 }

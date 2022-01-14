@@ -2,7 +2,9 @@ import 'package:chat/app/data/models/conversation.dart';
 import 'package:chat/app/data/models/user.dart';
 import 'package:chat/app/presentation/conversation/bloc/conversation_bloc.dart';
 import 'package:chat/app/presentation/conversation/bloc/conversation_event.dart';
+import 'package:chat/app/presentation/conversation/bloc/conversation_state.dart';
 import 'package:chat/app/presentation/conversation/ui/conversation_bottom_sheet.dart';
+import 'package:chat/core/bloc_base/bloc_consumer.dart';
 import 'package:chat/core/bloc_base/bloc_provider.dart';
 import 'package:chat/core/const/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +22,6 @@ class ConversationScreen extends StatefulWidget {
 }
 
 class _ConversationScreenState extends State<ConversationScreen> {
-
   late final ConversationBloc _bloc;
 
   @override
@@ -87,8 +88,39 @@ class _ConversationScreenState extends State<ConversationScreen> {
               )
             ],
           ),
+          bottom: PreferredSize(
+            preferredSize: Size(double.infinity, 25),
+            child: BlocConsumer<ConversationBloc, ConversationState>(
+              bloc: _bloc,
+              buildWhen: (oldState, newState) {
+                return newState is ConversationConnectedState ||
+                    newState is ConversationLoadingState ||
+                    newState is ConversationErrorState;
+              },
+              listener: (_,__){},
+              builder: (context, state) {
+                print("$state in screen");
+                if(state is ConversationConnectedState) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  children: [
+                    if(_bloc.isConnecting) const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("Connecting"),
+                    ),
+                    if(_bloc.isError) const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("No internet connection."),
+                    )
+                  ],
+                );
+              },
+            ),
+          ),
         ),
-        bottomSheet: ConversationBottomSheet(MediaQuery.of(context).padding.bottom),
+        bottomSheet:
+            ConversationBottomSheet(MediaQuery.of(context).padding.bottom),
         body: ConversationBody(widget.conversation),
       ),
     );

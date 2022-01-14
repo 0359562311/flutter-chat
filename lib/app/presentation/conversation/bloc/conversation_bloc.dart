@@ -23,14 +23,17 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   late SocketHandler _mySocketHandler, _otherSocketHandler;
   late StreamSubscription _subscription;
 
-  bool _isError = false;
-  bool get isError => _isError;
+  bool _isLoadMoreMessages = false;
+  bool get isLoadMoreMessages => _isLoadMoreMessages;
+
+  bool get isError => _otherSocketHandler.isError || _mySocketHandler.isError;
+  bool get isConnecting => _otherSocketHandler.isConnecting || _mySocketHandler.isConnecting;
+
 
   late Conversation _conversation;
 
   ConversationBloc(this._conversationRepository, this._messageRepository): super(ConversationLoadingState()) {
     _mySocketHandler = GetIt.I();
-
   }
 
   @override
@@ -70,11 +73,20 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   }
 
   FutureOr<void> _onLoadMore(ConversationLoadMoreMessageEvent event) async {
-    final res = await _messageRepository
-        .list(_conversation.id,_messages.isEmpty ? -1 : _messages.last.id);
-    if (res.isSuccess()) {
-      _messages += res.getSuccess()!;
-      emit(ConversationNewMessageState());
+    if(!_isLoadMoreMessages) {
+      _isLoadMoreMessages = true;
+      final res = await _messageRepository
+          .list(_conversation.id,_messages.isEmpty ? -1 : _messages.last.id);
+      if (res.isSuccess()) {
+        _messages += res.getSuccess()!;
+        _isLoadMoreMessages = false;
+        emit(ConversationNewMessageState());
+      } else {
+        emit(ConversationErrorState(reason: res.getError()!.reason));
+        Future.delayed(const Duration(seconds: 5)).then((value) {
+          _onLoadMore(event);
+        });
+      }
     }
   }
 
@@ -87,7 +99,6 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
 
   void _handleNewEvent(SocketState value) {
     if(value is SocketNewEventState) {
-      _isError = false;
       final data = jsonDecode(value.event);
       if(data['action'] == "NEW-PRIVATE-MESSAGE" && data['conversation'] == _conversation.id) {
         if(data['conversation'] == _conversation.id) {
@@ -109,11 +120,9 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
       }
       emit(ConversationNewMessageState());
     } else if(value is SocketConnectingState || value is SocketErrorState) {
-      _isError = true;
       emit(ConversationErrorState());
     } else if(value is SocketConnectedState) {
-      _isError = false;
-      emit(ConversationNewMessageState());
+      emit(ConversationConnectedState());
     }
   }
 }
