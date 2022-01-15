@@ -29,7 +29,6 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   bool get isError => _otherSocketHandler.isError || _mySocketHandler.isError;
   bool get isConnecting => _otherSocketHandler.isConnecting || _mySocketHandler.isConnecting;
 
-
   late Conversation _conversation;
 
   ConversationBloc(this._conversationRepository, this._messageRepository): super(ConversationLoadingState()) {
@@ -98,6 +97,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   }
 
   void _handleNewEvent(SocketState value) {
+    print("$value in conversation bloc");
     if(value is SocketNewEventState) {
       final data = jsonDecode(value.event);
       if(data['action'] == "NEW-PRIVATE-MESSAGE" && data['conversation'] == _conversation.id) {

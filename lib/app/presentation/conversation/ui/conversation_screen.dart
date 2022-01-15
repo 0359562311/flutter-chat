@@ -23,6 +23,7 @@ class ConversationScreen extends StatefulWidget {
 
 class _ConversationScreenState extends State<ConversationScreen> {
   late final ConversationBloc _bloc;
+  bool _isExpandAppbar = false;
 
   @override
   void initState() {
@@ -89,29 +90,46 @@ class _ConversationScreenState extends State<ConversationScreen> {
             ],
           ),
           bottom: PreferredSize(
-            preferredSize: Size(double.infinity, 25),
+            preferredSize: _isExpandAppbar ? const Size.fromHeight(50) : const Size.fromHeight(0),
             child: BlocConsumer<ConversationBloc, ConversationState>(
               bloc: _bloc,
               buildWhen: (oldState, newState) {
-                return newState is ConversationConnectedState ||
-                    newState is ConversationLoadingState ||
-                    newState is ConversationErrorState;
+                return (newState is ConversationConnectedState) ||
+                    (newState is ConversationLoadingState) ||
+                    (newState is ConversationErrorState);
               },
-              listener: (_,__){},
+              listenWhen: (oldState, newState) {
+                return (newState is ConversationConnectedState) ||
+                    (newState is ConversationLoadingState) ||
+                    (newState is ConversationErrorState);
+              },
+              listener: (oldState, newState) {
+                print("$newState in appbar listener");
+                if(newState is ConversationConnectedState) {
+                  setState(() {
+                    _isExpandAppbar = false;
+                  });
+                } else if(!_isExpandAppbar) {
+                  setState(() {
+                    _isExpandAppbar = true;
+                  });
+                }
+              },
               builder: (context, state) {
-                print("$state in screen");
                 if(state is ConversationConnectedState) {
                   return const SizedBox.shrink();
                 }
                 return Column(
                   children: [
                     if(_bloc.isConnecting) const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text("Connecting"),
+                      padding: EdgeInsets.all(4.0),
+                      child: Text("Connecting..."),
                     ),
                     if(_bloc.isError) const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text("No internet connection."),
+                      padding: EdgeInsets.all(4.0),
+                      child: Text("No internet connection.",
+                        style: TextStyle(color: Colors.red),
+                      ),
                     )
                   ],
                 );

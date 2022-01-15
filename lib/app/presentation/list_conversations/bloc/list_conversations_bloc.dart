@@ -23,6 +23,9 @@ class ListConversationsBloc extends Bloc<ListConversationsEvent, ListConversatio
   List<Conversation> _conversations = [];
   List<Conversation> get conversations => _conversations;
 
+  bool get isError => GetIt.I<SocketHandler>().isError;
+  bool get isConnecting => GetIt.I<SocketHandler>().isConnecting;
+
   ListConversationsBloc(
     this._conversationRepository,
   ): super(const ListConversationsLoadingState()) {
@@ -55,7 +58,6 @@ class ListConversationsBloc extends Bloc<ListConversationsEvent, ListConversatio
   void _socketHandler(SocketState event) async {
     if(event is SocketNewEventState) {
       final data = jsonDecode(event.event);
-      print(data['action']);
       if (data['action'] == "MESSAGE-SEEN") {
         int id1 = data['user1'];
         int id2 = data['user2'];
@@ -104,6 +106,7 @@ class ListConversationsBloc extends Bloc<ListConversationsEvent, ListConversatio
       emit(const ListConversationsLoadingState());
     } else if (event is SocketConnectedState) {
       emit(ListConversationsCompleteState());
+      emit(ListConversationConnectedState());
       addEvent(ListConversationsReloadEvent());
     } else if (event is SocketErrorState) {
       emit(ListConversationsErrorState(message: "No internet connection."));

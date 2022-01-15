@@ -10,8 +10,8 @@ import 'package:rxdart/rxdart.dart';
 
 class SocketHandler {
 
-  final PublishSubject<SocketState> _socketController = PublishSubject();
-  PublishSubject<SocketState> get socketController => _socketController;
+  final BehaviorSubject<SocketState> _socketController = BehaviorSubject();
+  BehaviorSubject<SocketState> get socketController => _socketController;
 
   late WebSocket _channel;
 
@@ -30,9 +30,9 @@ class SocketHandler {
     _isConnecting = true;
     _socketController.sink.add(SocketConnectingState());
     _channel = await connectWs(to: to);
-    print("socket connection initialized");
     _isConnecting = false;
     _isError = false;
+    print("socket connection initialized");
     _socketController.sink.add(SocketConnectedState());
     _channel.done.then((dynamic _) => _onDisconnected(to: to));
     broadcastNotifications(to: to);
@@ -40,14 +40,16 @@ class SocketHandler {
 
   broadcastNotifications({String? to}) {
     _channel.listen((streamData) {
-      print(streamData);
+      print("$streamData to $to");
       _socketController.sink.add(SocketNewEventState(streamData));
     }, onDone: () {
       print("connecting aborted");
+      _isError = true;
       _socketController.sink.add(SocketErrorState());
       initWebSocketConnection(to: to);
     }, onError: (e) {
       print('Server error: $e');
+      _isError = true;
       _socketController.sink.add(SocketErrorState());
       initWebSocketConnection(to: to);
     });

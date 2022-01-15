@@ -31,22 +31,13 @@ class _BlocConsumerState<B extends Bloc,S> extends State<BlocConsumer<B,S>> {
     super.initState();
     _subscription = widget.bloc.stateStream.listen((state) {
       oldState = newState;
-      newState = state as S;
-      if(widget.listenWhen != null) {
-        if(widget.listenWhen!(oldState??(newState!), newState!)) {
+      newState = state;
+      if(widget.listenWhen == null || widget.listenWhen!(oldState??(newState!), newState!)) {
+        print(newState);
           widget.listener(context, newState!);
-        }
-      } else {
-        widget.listener(context, newState!);
       }
 
-      if(widget.buildWhen != null && widget.buildWhen!(oldState??(newState!), newState!)) {
-        if(mounted) {
-          setState(() {
-            newState = state;
-          });
-        }
-      } else if(widget.buildWhen == null) {
+      if(widget.buildWhen == null || widget.buildWhen!(oldState??(newState!), newState!)) {
         if(mounted) {
           setState(() {
             newState = state;

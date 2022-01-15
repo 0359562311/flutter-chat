@@ -3,6 +3,7 @@ import 'package:chat/app/data/models/user.dart';
 import 'package:chat/app/presentation/list_conversations/bloc/list_conversations_bloc.dart';
 import 'package:chat/app/presentation/list_conversations/bloc/list_conversations_event.dart';
 import 'package:chat/app/presentation/list_conversations/bloc/list_conversations_state.dart';
+import 'package:chat/core/bloc_base/bloc_consumer.dart';
 import 'package:chat/core/const/app_routes.dart';
 import 'package:chat/core/custom_widget/custom_circular_progress.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,6 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
   late final ListConversationsBloc _bloc;
   late final ScrollController _scrollController;
   final _sliverAnimatedListKey = GlobalKey<SliverAnimatedListState>();
-
 
   @override
   void initState() {
@@ -63,7 +63,7 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tweenIn = Tween(begin: const Offset(0,1), end: const Offset(0,0));
+    final tweenIn = Tween(begin: const Offset(0, 1), end: const Offset(0, 0));
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
@@ -93,39 +93,51 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
             ),
           ),
         ),
-        // SliverAnimatedList(
-        //   key: _sliverAnimatedListKey,
-
-        //   initialItemCount: 10,
-        //   itemBuilder: (context, index, animation) {
-        //     return Container();
-        //   },
-        // )
-        StreamBuilder(builder: (context, snapshot) {
-          if (snapshot.hasData &&
-              snapshot.data is ListConversationsErrorState) {
-            return SliverToBoxAdapter(
-                child: Text(
-              (snapshot.data as ListConversationsErrorState).message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red, fontSize: 14),
-            ));
-          }
-          return const SliverToBoxAdapter(child: SizedBox.shrink());
-        }),
+        SliverToBoxAdapter(
+          child: BlocConsumer(
+            bloc: _bloc,
+            buildWhen: (oldState, newState) {
+              return newState is ListConversationsLoadingState ||
+                  newState is ListConversationsErrorState ||
+                  newState is ListConversationConnectedState;
+            },
+            listener: (_,state){},
+            builder: (context, state) {
+              if(state is ListConversationConnectedState) {
+                return const SizedBox.shrink();
+              }
+              return Column(
+                children: [
+                  if(_bloc.isConnecting) const Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: Text("Connecting..."),
+                  ),
+                  if(_bloc.isError) const Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: Text("No internet connection.",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  )
+                ],
+              );
+            },
+          ),
+        ),
         StreamBuilder<ListConversationsState>(
             stream: _bloc.stateStream,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return SliverToBoxAdapter(
-                    child: Center(child: Image.asset("assets/images/messenger.png"),));
+                    child: Center(
+                  child: Image.asset("assets/images/messenger.png"),
+                ));
               }
               return SliverAnimatedList(
                   key: _sliverAnimatedListKey,
                   initialItemCount: _bloc.conversations.length,
                   itemBuilder: (context, index, animation) {
                     if (index == _bloc.conversations.length) {
-                      if(_scrollController.offset < 25) {
+                      if (_scrollController.offset < 25) {
                         return const SizedBox.shrink();
                       }
                       return const Text(
@@ -137,7 +149,8 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
                     }
                     return InkWell(
                       onTap: () {
-                        Navigator.pushNamed(context, AppRoute.conversation,arguments: _bloc.conversations[index]);
+                        Navigator.pushNamed(context, AppRoute.conversation,
+                            arguments: _bloc.conversations[index]);
                       },
                       child: SlideTransition(
                         position: animation.drive(tweenIn),

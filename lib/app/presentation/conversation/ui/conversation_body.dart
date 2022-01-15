@@ -63,7 +63,6 @@ class _ConversationBodyState extends State<ConversationBody> {
         return newState is ConversationNewMessageState || newState is ConversationLoadMoreMessageCompleteState;
       },
       builder: (context, state) {
-        print("$state in body");
         return Column(
           children: [
             Expanded(
