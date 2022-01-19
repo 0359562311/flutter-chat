@@ -1,12 +1,14 @@
+import 'dart:io';
+
 import 'package:chat/app/data/models/conversation.dart';
 import 'package:chat/app/data/models/message.dart';
 import 'package:chat/app/data/models/user.dart';
 import 'package:chat/app/presentation/conversation/bloc/conversation_bloc.dart';
+import 'package:chat/app/presentation/conversation/bloc/conversation_event.dart';
 import 'package:chat/app/presentation/conversation/bloc/conversation_state.dart';
 import 'package:chat/app/presentation/conversation/ui/seen_status.dart';
 import 'package:chat/core/bloc_base/bloc_consumer.dart';
 import 'package:chat/core/bloc_base/bloc_provider.dart';
-import 'package:chat/core/const/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
@@ -23,11 +25,22 @@ class ConversationBody extends StatefulWidget {
 
 class _ConversationBodyState extends State<ConversationBody> {
   late final ScrollController _scrollController;
+  late ConversationBloc _bloc;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
+    _scrollController = ScrollController()..addListener(() {
+      if(_scrollController.offset == _scrollController.position.maxScrollExtent) {
+        _bloc.addEvent(ConversationLoadMoreMessageEvent());
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _bloc = BlocProvider.of<ConversationBloc>(context)!;
   }
 
   @override
@@ -38,14 +51,13 @@ class _ConversationBodyState extends State<ConversationBody> {
 
   @override
   Widget build(BuildContext context) {
-    final _bloc = BlocProvider.of<ConversationBloc>(context);
     final currentUser = GetIt.I<User>();
     final other = widget.conversation.user1.id == currentUser.id
         ? widget.conversation.user2
         : widget.conversation.user1;
 
     return BlocConsumer<ConversationBloc, ConversationState>(
-      bloc: _bloc!,
+      bloc: _bloc,
       listener: (context, state) {
         if (state is ConversationErrorState) {
           Fluttertoast.showToast(
@@ -78,6 +90,7 @@ class _ConversationBodyState extends State<ConversationBody> {
                     final message = _bloc.messages[index];
                     if (message.sendBy == currentUser.id) {
                       return Row(
+                        key: ValueKey(message.id),
                         crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -97,6 +110,7 @@ class _ConversationBodyState extends State<ConversationBody> {
                     }
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
+                      key: ValueKey(message.id),
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -133,7 +147,9 @@ class _ConversationBodyState extends State<ConversationBody> {
             ),
             SizedBox(
               height: MediaQuery.of(context).padding.bottom,
-            )
+            ),
+            if (MediaQuery.of(context).padding.bottom == 0)
+              const SizedBox(height: 35,)
           ],
         );
       },
@@ -151,11 +167,11 @@ class _ConversationBodyState extends State<ConversationBody> {
                   message.text, MediaQuery.of(context).size.width - 64 - 100));
         }
       }
-      return const SizedBox.shrink();
+      return const SizedBox(width: 14,);
     }
     else {
       if(message.sendAt.isAfter(conversation.getOtherLastSeen())) {
-        return const SizedBox.shrink();
+        return const SizedBox(width: 14,);
       }
       return SeenStatus(
           avatar: conversation.getOther().avatar,

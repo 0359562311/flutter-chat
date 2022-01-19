@@ -24,9 +24,7 @@ class _SeenStatusState extends State<SeenStatus>
     _tweenAnimation =
         Tween<Offset>(begin: Offset(0, -(widget.initOffset/12)), end: const Offset(0, 0))
             .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      _controller.forward();
-    });
+    _controller.forward();
   }
 
   @override

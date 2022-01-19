@@ -23,8 +23,8 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   late SocketHandler _mySocketHandler, _otherSocketHandler;
   late StreamSubscription _subscription;
 
-  bool _isLoadMoreMessages = false;
-  bool get isLoadMoreMessages => _isLoadMoreMessages;
+  bool _isLoadingMoreMessages = false;
+  bool get isLoadingMoreMessages => _isLoadingMoreMessages;
 
   bool get isError => _otherSocketHandler.isError || _mySocketHandler.isError;
   bool get isConnecting => _otherSocketHandler.isConnecting || _mySocketHandler.isConnecting;
@@ -54,7 +54,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
             ? event.conversation.user1.username
             : event.conversation.user2.username);
     _subscription = _mySocketHandler.socketController.listen(_handleNewEvent);
-    final res = await _messageRepository.list(_conversation.id,-1);
+    final res = await _messageRepository.list(_conversation.id, -1);
     if (res.isSuccess()) {
       _messages = res.getSuccess()!;
       emit(ConversationNewMessageState());
@@ -72,13 +72,13 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   }
 
   FutureOr<void> _onLoadMore(ConversationLoadMoreMessageEvent event) async {
-    if(!_isLoadMoreMessages) {
-      _isLoadMoreMessages = true;
+    if(!_isLoadingMoreMessages) {
+      _isLoadingMoreMessages = true;
       final res = await _messageRepository
           .list(_conversation.id,_messages.isEmpty ? -1 : _messages.last.id);
       if (res.isSuccess()) {
         _messages += res.getSuccess()!;
-        _isLoadMoreMessages = false;
+        _isLoadingMoreMessages = false;
         emit(ConversationNewMessageState());
       } else {
         emit(ConversationErrorState(reason: res.getError()!.reason));

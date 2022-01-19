@@ -9,10 +9,9 @@ class ConversationInitEvent extends ConversationEvent {
 }
 
 class ConversationNewMessageEvent extends ConversationEvent {
-  final int conversationID;
   final String content;
 
-  ConversationNewMessageEvent(this.conversationID, this.content);
+  ConversationNewMessageEvent(this.content);
 }
 
 class ConversationLoadMoreMessageEvent extends ConversationEvent {}
