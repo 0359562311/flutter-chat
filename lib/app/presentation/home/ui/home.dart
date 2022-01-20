@@ -3,7 +3,6 @@ import 'package:chat/app/presentation/home/bloc/home_bloc.dart';
 import 'package:chat/app/presentation/home/bloc/home_state.dart';
 import 'package:chat/app/presentation/list_conversations/ui/list_conversations.dart';
 import 'package:chat/core/const/app_colors.dart';
-import 'package:chat/core/custom_widget/custom_circular_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 

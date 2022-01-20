@@ -5,6 +5,7 @@ import 'package:chat/app/data/models/session.dart';
 import 'package:chat/app/data/models/user.dart';
 import 'package:chat/app/presentation/conversation/ui/conversation_screen.dart';
 import 'package:chat/app/presentation/home/ui/home.dart';
+import 'package:chat/app/presentation/search/ui/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
@@ -32,33 +33,28 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(statusBarColor: Colors.white));
-    return NotificationListener<OverscrollIndicatorNotification>(
-      onNotification: (overscroll) {
-        overscroll.disallowIndicator();
-        return true;
-      },
-      child: MaterialApp(
-        title: 'Simple Chat App',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          fontFamily: "Roboto",
-        ),
-        debugShowCheckedModeBanner: false,
-        navigatorKey: GetIt.instance<GlobalKey<NavigatorState>>(),
-        routes: {
-          AppRoute.init: (context) => const Bridge(),
-          AppRoute.login: (context) => const Login(),
-          AppRoute.home: (_) => const Home()
-        },
-        onGenerateRoute: (settings) {
-          if (settings.name == AppRoute.conversation) {
-            return MaterialPageRoute(
-                builder: (context) => ConversationScreen(
-                      conversation: settings.arguments as Conversation,
-                    ));
-          }
-        },
+    return MaterialApp(
+      title: 'Simple Chat App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        fontFamily: "Roboto",
       ),
+      debugShowCheckedModeBanner: false,
+      navigatorKey: GetIt.instance<GlobalKey<NavigatorState>>(),
+      routes: {
+        AppRoute.init: (context) => const Bridge(),
+        AppRoute.login: (context) => const Login(),
+        AppRoute.home: (_) => const Home(),
+        AppRoute.search: (_) => const SearchScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == AppRoute.conversation) {
+          return MaterialPageRoute(
+              builder: (context) => ConversationScreen(
+                    conversation: settings.arguments as Conversation,
+                  ));
+        }
+      },
     );
   }
 }

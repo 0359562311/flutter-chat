@@ -1,3 +1,4 @@
+import 'package:chat/app/data/models/user.dart';
 import 'package:chat/app/data/sources/user_source.dart';
 import 'package:chat/core/failure.dart';
 import 'package:get_it/get_it.dart';
@@ -19,6 +20,15 @@ class UserRepository {
       _localSource.cache(user);
       // ignore: prefer_const_constructors
       return Success(null);
+    } on DioError catch (e) {
+      return Error(Failure(e.response?.data['detail']));
+    }
+  }
+
+  Future<Result<Failure, List<User>>> list(String query) async {
+    try {
+      final users = await _remoteSource.list(query);
+      return Success(users);
     } on DioError catch (e) {
       return Error(Failure(e.response?.data['detail']));
     }

@@ -97,7 +97,6 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   }
 
   void _handleNewEvent(SocketState value) {
-    print("$value in conversation bloc");
     if(value is SocketNewEventState) {
       final data = jsonDecode(value.event);
       if(data['action'] == "NEW-PRIVATE-MESSAGE" && data['conversation'] == _conversation.id) {

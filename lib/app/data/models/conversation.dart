@@ -7,13 +7,13 @@ import 'package:get_it/get_it.dart';
 
 class Conversation {
   int id;
-  UserInConversation user1;
-  UserInConversation user2;
+  User user1;
+  User user2;
   String? alias1;
   String? alias2;
   DateTime lastSeen1;
   DateTime lastSeen2;
-  Message lastMessage;
+  Message? lastMessage;
   Conversation({
     required this.id,
     required this.user1,
@@ -22,14 +22,14 @@ class Conversation {
     this.alias2,
     required this.lastSeen1,
     required this.lastSeen2,
-    required this.lastMessage,
+    this.lastMessage,
   });
 
 
   Conversation copyWith({
     int? id,
-    UserInConversation? user1,
-    UserInConversation? user2,
+    User? user1,
+    User? user2,
     String? alias1,
     String? alias2,
     DateTime? lastSeen1,
@@ -51,17 +51,17 @@ class Conversation {
   factory Conversation.fromMap(Map<String, dynamic> map) {
     return Conversation(
       id: map['id']?.toInt() ?? 0,
-      user1: UserInConversation.fromMap(map['user1']),
-      user2: UserInConversation.fromMap(map['user2']),
+      user1: User.fromMap(map['user1']),
+      user2: User.fromMap(map['user2']),
       alias1: map['alias1'],
       alias2: map['alias2'],
       lastSeen1:( map['last_seen1'] as String).toDateTime(),
       lastSeen2: (map['last_seen2'] as String).toDateTime(),
-      lastMessage: Message.fromMap(map['last_message']),
+      lastMessage: map['last_message'] != null ? Message.fromMap(map['last_message']) : null,
     );
   }
 
-  UserInConversation getOther() {
+  User getOther() {
     final user = GetIt.I<User>();
     if(user1.id == user.id) {
       return user2;
@@ -113,70 +113,5 @@ class Conversation {
       lastSeen1.hashCode ^
       lastSeen2.hashCode ^
       lastMessage.hashCode;
-  }
-}
-
-class UserInConversation {
-  String? avatar;
-  String username;
-  bool isOnline;
-  DateTime lastOnline;
-  int id;
-  UserInConversation({
-    this.avatar,
-    required this.username,
-    required this.isOnline,
-    required this.lastOnline,
-    required this.id,
-  });
-
-  UserInConversation copyWith({
-    String? avatar,
-    String? username,
-    bool? isOnline,
-    DateTime? lastOnline,
-    int? id,
-  }) {
-    return UserInConversation(
-      avatar: avatar ?? this.avatar,
-      username: username ?? this.username,
-      isOnline: isOnline ?? this.isOnline,
-      lastOnline: lastOnline ?? this.lastOnline,
-      id: id ?? this.id,
-    );
-  }
-
-  factory UserInConversation.fromMap(Map<String, dynamic> map) {
-    return UserInConversation(
-      avatar: map['avatar'],
-      username: map['username'] ?? '',
-      isOnline: map['is_online'] ?? false,
-      lastOnline: (map['last_online'] as String).toDateTime(),
-      id: map['id']?.toInt() ?? 0,
-    );
-  }
-
-  factory UserInConversation.fromJson(String source) => UserInConversation.fromMap(json.decode(source));
-
-  @override
-  String toString() {
-    return 'UserInConversation(avatar: $avatar, username: $username, isOnline: $isOnline, lastOnline: $lastOnline, id: $id)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-  
-    return other is UserInConversation &&
-      other.id == id;
-  }
-
-  @override
-  int get hashCode {
-    return avatar.hashCode ^
-      username.hashCode ^
-      isOnline.hashCode ^
-      lastOnline.hashCode ^
-      id.hashCode;
   }
 }

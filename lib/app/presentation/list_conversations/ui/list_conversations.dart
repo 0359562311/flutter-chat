@@ -24,12 +24,19 @@ final DateFormat _dateFormat = DateFormat("MMM dd yyyy");
 class ListConversationsScreenState extends State<ListConversationsScreen> {
   late final ListConversationsBloc _bloc;
   late final ScrollController _scrollController;
+  late final FocusNode _focusNode;
   final _sliverAnimatedListKey = GlobalKey<SliverAnimatedListState>();
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _focusNode = FocusNode()..addListener(() {
+      if(_focusNode.hasFocus) {
+        Navigator.of(context).pushNamed(AppRoute.search);
+        _focusNode.unfocus();
+      }
+    });
     _bloc = GetIt.I()
       ..listenerStream.listen((event) {
         if (event is ListConversationsNewMessageState) {
@@ -53,6 +60,7 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _focusNode.dispose();
     _bloc.dispose();
     super.dispose();
   }
@@ -72,6 +80,7 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
             width: double.infinity,
             margin: const EdgeInsets.all(16.0),
             child: TextField(
+              focusNode: _focusNode,
               decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(100),
@@ -226,13 +235,13 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
     }
 
     bool isSeen = false;
-    if (user.id != conversation.lastMessage.sendBy) {
+    if (conversation.lastMessage != null && user.id != conversation.lastMessage!.sendBy) {
       if (user.id == conversation.user1.id) {
         isSeen =
-            conversation.lastSeen1.isAfter(conversation.lastMessage.sendAt);
+            conversation.lastSeen1.isAfter(conversation.lastMessage!.sendAt);
       } else {
         isSeen =
-            conversation.lastSeen2.isAfter(conversation.lastMessage.sendAt);
+            conversation.lastSeen2.isAfter(conversation.lastMessage!.sendAt);
       }
     }
     return Text(
@@ -245,24 +254,28 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
   }
 
   Widget _getConversationLastMessage(Conversation conversation) {
+    if(conversation.lastMessage == null) {
+      return const Text('(no message)');
+    }
+
     User user = GetIt.I();
     String res =
-        conversation.lastMessage.text ?? "This message has been unsent.";
+        conversation.lastMessage!.text ?? "This message has been unsent.";
     var style = const TextStyle(overflow: TextOverflow.ellipsis, fontSize: 13);
-    if (user.id == conversation.lastMessage.sendBy) {
+    if (user.id == conversation.lastMessage!.sendBy) {
       res = "You: " + res;
     } else {
       bool isSeen = false;
       if (user.id == conversation.user1.id) {
         isSeen =
-            conversation.lastSeen1.isAfter(conversation.lastMessage.sendAt);
+            conversation.lastSeen1.isAfter(conversation.lastMessage!.sendAt);
       } else {
         isSeen =
-            conversation.lastSeen2.isAfter(conversation.lastMessage.sendAt);
+            conversation.lastSeen2.isAfter(conversation.lastMessage!.sendAt);
       }
       style = isSeen ? style : style.copyWith(fontWeight: FontWeight.bold);
     }
-    bool isSameDay = conversation.lastMessage.sendAt.isSameDay(DateTime.now());
+    bool isSameDay = conversation.lastMessage!.sendAt.isSameDay(DateTime.now());
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start,
@@ -279,8 +292,8 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
         ),
         Text(
           isSameDay
-              ? _timeFormat.format(conversation.lastMessage.sendAt)
-              : _dateFormat.format(conversation.lastMessage.sendAt),
+              ? _timeFormat.format(conversation.lastMessage!.sendAt)
+              : _dateFormat.format(conversation.lastMessage!.sendAt),
           style: style,
           textAlign: TextAlign.center,
         )
@@ -290,7 +303,7 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
 
   Widget _getLastMessageState(Conversation conversation) {
     User user = GetIt.I();
-    if (user.id != conversation.lastMessage.sendBy) {
+    if (user.id != conversation.lastMessage!.sendBy) {
       return const SizedBox.shrink();
     } else {
       return const SizedBox.shrink();

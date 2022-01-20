@@ -104,7 +104,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     (newState is ConversationErrorState);
               },
               listener: (oldState, newState) {
-                print("$newState in appbar listener");
                 if(newState is ConversationConnectedState) {
                   setState(() {
                     _isExpandAppbar = false;

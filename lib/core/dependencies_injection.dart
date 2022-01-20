@@ -81,7 +81,7 @@ Future<void> initDependenciesInjection() async {
   getIt.registerLazySingleton(() => UserLocalSource());
   getIt.registerLazySingleton(() => MessageRemoteSource());
 
-  /// bloc
+  /// provider
   getIt.registerFactory(() => LoginBloc(getIt()));
   getIt.registerFactory(() => ListConversationsBloc(getIt()));
   getIt.registerFactory(() => HomeBloc(getIt()));

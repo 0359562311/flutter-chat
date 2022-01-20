@@ -47,6 +47,7 @@ dependencies:
   mockito: ^5.0.16
   multiple_result: ^1.0.4
   fluttertoast: ^8.0.8
+  provider: ^6.0.2
 
 dev_dependencies:
   flutter_test:

@@ -33,7 +33,6 @@ class _BlocConsumerState<B extends Bloc,S> extends State<BlocConsumer<B,S>> {
       oldState = newState;
       newState = state;
       if(widget.listenWhen == null || widget.listenWhen!(oldState??(newState!), newState!)) {
-        print(newState);
           widget.listener(context, newState!);
       }
 

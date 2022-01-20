@@ -18,6 +18,9 @@ class User {
   String email;
   @HiveField(5)
   bool isPublic;
+  @HiveField(6)
+  bool isOnline;
+
   User({
     required this.id,
     required this.username,
@@ -25,6 +28,7 @@ class User {
     this.avatar,
     required this.email,
     required this.isPublic,
+    required this.isOnline,
   });
 
   User copyWith({
@@ -34,6 +38,7 @@ class User {
     String? avatar,
     String? email,
     bool? isPublic,
+    bool? isOnline,
   }) {
     return User(
       id: id ?? this.id,
@@ -42,6 +47,7 @@ class User {
       avatar: avatar ?? this.avatar,
       email: email ?? this.email,
       isPublic: isPublic ?? this.isPublic,
+      isOnline: isOnline ?? this.isOnline,
     );
   }
 
@@ -64,6 +70,7 @@ class User {
       avatar: map['avatar'],
       email: map['email'] ?? '',
       isPublic: map['is_public'] ?? false,
+      isOnline: map['is_online'] ?? false,
     );
   }
 

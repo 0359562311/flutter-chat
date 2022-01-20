@@ -31,6 +31,15 @@ class ConversationRepository {
     }
   }
 
+  Future<Result<Failure, Conversation>> create(int to) async {
+    try {
+      final res = await _remoteSources.create(to);
+      return Success(res);
+    } on DioError catch (e) {
+      return Error(Failure(e.response?.data['detail']??"Something happened"));
+    }
+  }
+
   Future<Result<Failure, Conversation>> getConversationToUser(int otherId) async {
     try {
       final res = await _remoteSources.getConversationToUser(otherId);

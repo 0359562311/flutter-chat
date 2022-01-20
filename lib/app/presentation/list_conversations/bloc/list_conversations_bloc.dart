@@ -94,7 +94,7 @@ class ListConversationsBloc extends Bloc<ListConversationsEvent, ListConversatio
             return;
           }
         }
-        final res = await _conversationRepository.getConversationById(lastMessage.conversation);
+        final res = await _conversationRepository.getConversationById(lastMessage.id);
         if(res.isSuccess()) {
           Conversation lastConversation = res.getSuccess()!;
           _conversations.insert(0, lastConversation);
