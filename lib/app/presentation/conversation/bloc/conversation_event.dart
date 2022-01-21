@@ -14,4 +14,8 @@ class ConversationNewMessageEvent extends ConversationEvent {
   ConversationNewMessageEvent(this.content);
 }
 
-class ConversationLoadMoreMessageEvent extends ConversationEvent {}
+class ConversationLoadMoreMessageEvent extends ConversationEvent {
+  final bool isInit;
+
+  ConversationLoadMoreMessageEvent({required this.isInit});
+}

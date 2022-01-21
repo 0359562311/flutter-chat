@@ -30,6 +30,7 @@ class _HomeState extends State<Home> {
 
   @override
   void dispose() {
+    print("dispose home");
     _bloc.dispose();
     GetIt.I<SocketHandler>().dispose();
     GetIt.I.unregister<SocketHandler>();

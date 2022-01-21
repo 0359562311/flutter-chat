@@ -54,13 +54,6 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
             ? event.conversation.user1.username
             : event.conversation.user2.username);
     _subscription = _mySocketHandler.socketController.listen(_handleNewEvent);
-    final res = await _messageRepository.list(_conversation.id, -1);
-    if (res.isSuccess()) {
-      _messages = res.getSuccess()!;
-      emit(ConversationNewMessageState());
-    } else {
-      emit(ConversationErrorState());
-    }
   }
 
   FutureOr<void> _onNewMessage(ConversationNewMessageEvent event) async {
@@ -74,8 +67,16 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   FutureOr<void> _onLoadMore(ConversationLoadMoreMessageEvent event) async {
     if(!_isLoadingMoreMessages) {
       _isLoadingMoreMessages = true;
+      int pivot = -1;
+      if(!event.isInit) {
+        if(_messages.isNotEmpty) {
+          pivot = _messages.last.id;
+        }
+      } else {
+        _messages = [];
+      }
       final res = await _messageRepository
-          .list(_conversation.id,_messages.isEmpty ? -1 : _messages.last.id);
+          .list(_conversation.id, pivot);
       if (res.isSuccess()) {
         _messages += res.getSuccess()!;
         _isLoadingMoreMessages = false;
@@ -122,6 +123,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
       emit(ConversationErrorState());
     } else if(value is SocketConnectedState) {
       emit(ConversationConnectedState());
+      addEvent(ConversationLoadMoreMessageEvent(isInit: true));
     }
   }
 }

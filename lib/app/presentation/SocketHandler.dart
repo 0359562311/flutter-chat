@@ -12,6 +12,7 @@ class SocketHandler {
 
   final BehaviorSubject<SocketState> _socketController = BehaviorSubject();
   BehaviorSubject<SocketState> get socketController => _socketController;
+  Sink<SocketState> get _sink => _socketController.sink;
 
   late WebSocket _channel;
 
@@ -28,12 +29,12 @@ class SocketHandler {
   Future initWebSocketConnection({String? to}) async {
     print("connecting...");
     _isConnecting = true;
-    _socketController.sink.add(SocketConnectingState());
+    _sink.add(SocketConnectingState());
     _channel = await connectWs(to: to);
     _isConnecting = false;
     _isError = false;
     print("socket connection initialized");
-    _socketController.sink.add(SocketConnectedState());
+    _sink.add(SocketConnectedState());
     _channel.done.then((dynamic _) => _onDisconnected(to: to));
     broadcastNotifications(to: to);
   }
@@ -41,16 +42,16 @@ class SocketHandler {
   broadcastNotifications({String? to}) {
     _channel.listen((streamData) {
       print("$streamData to $to");
-      _socketController.sink.add(SocketNewEventState(streamData));
+      _sink.add(SocketNewEventState(streamData));
     }, onDone: () {
       print("connecting aborted");
       _isError = true;
-      _socketController.sink.add(SocketErrorState());
+      _sink.add(SocketErrorState());
       initWebSocketConnection(to: to);
     }, onError: (e) {
       print('Server error: $e');
       _isError = true;
-      _socketController.sink.add(SocketErrorState());
+      _sink.add(SocketErrorState());
       initWebSocketConnection(to: to);
     });
   }
@@ -74,12 +75,11 @@ class SocketHandler {
 
   void _onDisconnected({String? to}) {
     _isError = true;
-    _socketController.sink.add(SocketErrorState());
+    _sink.add(SocketErrorState());
     initWebSocketConnection(to: to);
   }
 
   void dispose() {
-    _socketController.sink.close();
     _socketController.close();
   }
 }

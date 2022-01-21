@@ -32,7 +32,7 @@ class _ConversationBodyState extends State<ConversationBody> {
     super.initState();
     _scrollController = ScrollController()..addListener(() {
       if(_scrollController.offset == _scrollController.position.maxScrollExtent) {
-        _bloc.addEvent(ConversationLoadMoreMessageEvent());
+        _bloc.addEvent(ConversationLoadMoreMessageEvent(isInit: false));
       }
     });
   }

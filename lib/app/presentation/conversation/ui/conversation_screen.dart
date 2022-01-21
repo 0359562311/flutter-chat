@@ -33,8 +33,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   @override
   void dispose() {
-    super.dispose();
+    print("dispose conversation");
     _bloc.dispose();
+    super.dispose();
   }
 
   @override

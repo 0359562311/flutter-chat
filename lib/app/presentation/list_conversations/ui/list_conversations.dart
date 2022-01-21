@@ -59,6 +59,7 @@ class ListConversationsScreenState extends State<ListConversationsScreen> {
 
   @override
   void dispose() {
+    print("dispose list conversation");
     _scrollController.dispose();
     _focusNode.dispose();
     _bloc.dispose();
